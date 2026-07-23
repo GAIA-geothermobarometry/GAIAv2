@@ -1,0 +1,14 @@
+.idea/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.streamlit/secrets.toml
+test_output.txt
+_diag*.txt
+*.tmp
+.DS_Store
+Thumbs.db
+
