@@ -20,7 +20,7 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("GAIA 2  - About the project")
+st.title("GAIA  - About the project")
 
 col_title, col_logo = st.columns([3, 1])
 with col_title:
