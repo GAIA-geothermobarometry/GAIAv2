@@ -4,9 +4,10 @@ Standalone application (PyTorch + Streamlit) for estimating **Pressure (kbar)**
 and **Temperature (°C)** of volcano plumbing systems from clinopyroxene
 chemical composition (geothermobarometry).
 
-This is a self-contained rewrite of the previous GAIA app (see `GAIA_legacy/`
-in the original development workspace), with a new inference layer based on
-the final PyTorch models (July 2026), replacing the old TensorFlow models.
+This is a self-contained rewrite of the previous GAIA app (see
+https://github.com/GAIA-geothermobarometry/GAIA/tree/main), with a new
+inference layer based on the final PyTorch models (July 2026), replacing the
+old TensorFlow models.
 
 ## What it does
 
@@ -56,47 +57,6 @@ An example file is available at `examples/input_example.xlsx` (derived from
 the legacy app template) and an empty template at
 `examples/input_template_empty.xlsx`.
 
-## Installation
-
-```powershell
-conda create -n GAIAv2_env python=3.9
-conda activate GAIAv2_env
-pip install -r requirements.txt
-```
-
-## Local launch
-
-```powershell
-cd GAIA_v2
-streamlit run app.py
-```
-
-The app is a Streamlit multipage app: the "Info" page (project background,
-citation, people) is automatically available in the sidebar
-(`pages/1_Info.py`).
-
-## Tests
-
-```powershell
-cd GAIA_v2
-python -m pytest tests -v
-```
-
-All tests (23) can be run from inside `GAIA_v2` without any dependency on
-files or imports outside this folder. They include:
-
-- shared, deterministic chemical preprocessing;
-- correct zeroing of only the chromium-dependent components;
-- input validation;
-- checkpoint loading and `eval()` mode;
-- end-to-end integration for both flows;
-- **numerical equivalence**: the output of the simplified inference model
-  (`gaia/models.py`, `net` + `regressor` only) is compared against an
-  independent reconstruction of the full original architecture (including
-  the `discriminator` branch, never used at inference time) loaded with the
-  same weights. Tolerance used: `rtol=1e-5, atol=1e-6` (the weights and the
-  relevant network part are bit-for-bit identical; the tolerance only covers
-  possible internal BLAS/PyTorch non-determinism).
 
 ## Model organization (artifacts/)
 
@@ -117,9 +77,6 @@ exceeds the recommended threshold for a "normal" Git repository (~100 MB),
 project is versioned in a Git repository. Git LFS has not been configured
 automatically.
 
-Not copied: `global_history.pkl` (training history) and the
-`seq_sorted_bootstrap*.pickle` files (bootstrap indices), not needed for
-inference.
 
 ## Model architecture
 
@@ -139,49 +96,4 @@ adversarial domain adaptation, is ignored):
   logic as the legacy app). Samples that fail the check have predictions set
   to `NaN` instead of a fabricated value.
 
-## Important scientific assumptions
-
-- No input scaler (StandardScaler/MinMax) is applied: the 11 components come
-  from a chemical balance that already constrains them to a comparable range.
-  This exactly reflects the original training pipeline.
-- Output de-normalization is a simple fixed linear multiplication (`×10` for
-  pressure, `×1400` for temperature), not a scaler fitted on data.
-- The zeroed chromium-dependent components are exactly `CaCrTs` and
-  `NaCrSi2O6` (and no other), applied after chemical preprocessing and before
-  inference.
-
-## Current limitations
-
-- The app does not automatically check/validate whether the uploaded file is
-  consistent with the selected Chromium mode (e.g. all Cr2O3 columns at zero
-  while "Chromium measured" was selected): this choice remains the user's
-  responsibility, by design (see requirements).
-- No authentication, database, or multi-tenant deployment management: the
-  app is designed for single-user/local use or deployment via Streamlit
-  Community Cloud / an internal server.
-- The models were validated on the datasets described in the original
-  development workspace (GAIA1/GAIA2/Wieser); accuracy on chemical
-  compositions very different from the training data is not guaranteed.
-
-## Deployment on Streamlit Community Cloud
-
-1. Version this folder (`GAIA_v2/`) in a dedicated Git repository
-   (optionally with Git LFS for `artifacts/`, see above).
-2. On [share.streamlit.io](https://share.streamlit.io), connect the
-   repository and set `app.py` as the entry point.
-3. Make sure `requirements.txt` is at the root of the repository (already
-   present here).
-4. If the deployment fails on dependency resolution (e.g. a `torch` build
-   incompatible with the platform's default Python version), pin the Python
-   version explicitly with a `.python-version` file at the repository root
-   (this project uses Python 3.11).
-
-## License and attribution
-
-Based on the original GAIA project (Department of Physics and Astronomy and
-Department of Earth Sciences, University of Florence). No explicit license
-was indicated in the legacy app (`GAIA_legacy/GAIA-main/README.md` only
-reports "[In publ.]" as a reference to the scientific publication). It is
-recommended to verify/add an explicit license before any public
-distribution.
 
