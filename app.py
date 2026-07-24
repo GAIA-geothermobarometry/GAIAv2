@@ -22,7 +22,8 @@ from gaia.config import (
     REQUIRED_INPUT_COLUMNS,
 )
 from gaia.inference import preload_models, run_inference
-from gaia.validation import ValidationError
+from gaia.preprocessing import apply_chromium_mode, compute_components
+from gaia.validation import ValidationError, validate_dataframe
 
 LOGO_PATH = Path(__file__).resolve().parent / "logo_gaiav2.png"
 _logo_image = Image.open(LOGO_PATH) if LOGO_PATH.exists() else None
@@ -154,11 +155,50 @@ if uploaded_file is not None:
         raw_df = None
 
 # ---------------------------------------------------------------------------
+# Preprocessing preview
+# ---------------------------------------------------------------------------
+st.header("3. Preprocessing")
+
+preprocessed_df: pd.DataFrame | None = None
+if raw_df is not None:
+    try:
+        clean_df = validate_dataframe(raw_df)
+        prep = compute_components(clean_df)
+        components = apply_chromium_mode(prep["components"], chromium_mode)
+        preprocessed_df = components.copy()
+        preprocessed_df["Sum"] = prep["sum_of_components"]
+        preprocessed_df["cpx_selection"] = prep["checks"]["cpx_selection"].to_numpy()
+
+        st.write("Preprocessed clinopyroxene components (model input):")
+        st.dataframe(preprocessed_df)
+
+        preprocessed_excel = _to_excel_bytes(preprocessed_df)
+        st.download_button(
+            "Download preprocessed data (xlsx)",
+            data=preprocessed_excel,
+            file_name="GAIA_v2_preprocessed.xlsx",
+            key="download_preprocessed",
+        )
+    except ValidationError as e:
+        st.error(f"Error in the input data: {e}")
+        preprocessed_df = None
+    except Exception:
+        st.error(
+            "An unexpected error occurred while preprocessing the data. "
+            "Please check the file format and try again."
+        )
+        with st.expander("Technical details (for developers)"):
+            st.code(traceback.format_exc())
+        preprocessed_df = None
+else:
+    st.info("Upload a file to see the preprocessed components.")
+
+# ---------------------------------------------------------------------------
 # Run inference
 # ---------------------------------------------------------------------------
-st.header("3. Prediction")
+st.header("4. Prediction")
 
-if raw_df is not None and st.button("Run pre-processing and prediction", type="primary"):
+if raw_df is not None and st.button("Run prediction", type="primary"):
     try:
         _load_models_once()
         results = run_inference(raw_df, chromium_mode=chromium_mode)
