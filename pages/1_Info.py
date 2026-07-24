@@ -15,14 +15,14 @@ LOGO_PATH = PROJECT_ROOT / "logo_gaiav2.png"
 _logo_image = Image.open(LOGO_PATH) if LOGO_PATH.exists() else None
 
 st.set_page_config(
-    page_title="GAIA v2 - Info",
+    page_title="GAIA 2 - Info",
     page_icon=_logo_image if _logo_image is not None else "🌋",
     layout="wide",
 )
 
 col_title, col_logo = st.columns([3, 1])
 with col_title:
-    st.title("GAIA v2")
+    st.title("GAIA 2")
 with col_logo:
     if _logo_image is not None:
         st.image(_logo_image, width=200)
@@ -46,13 +46,9 @@ st.write(
     "clinopyroxene compositions."
 )
 
-st.header("About GAIA v2")
+st.header("About GAIA 2")
 st.write(
-    "GAIA v2 is a standalone rewrite of the original GAIA web app, replacing the "
-    "legacy TensorFlow model layer with the final PyTorch ensemble models "
-    "(pressure and temperature), while keeping the same chemical preprocessing "
-    "and scientific validation logic. See the README.md of this repository for "
-    "full technical details, assumptions and limitations."
+    "GAIA 2 is a fine-tuned evolution of the original GAIA model, trained on a substantially broader range of experimental laboratory data. It also incorporates natural samples during calibration through a domain-adaptation procedure, making it, to our knowledge, the first machine-learning model for geothermobarometry to use natural data as part of the training process. The standalone web application uses the final PyTorch ensemble models for pressure and temperature prediction while retaining the established chemical preprocessing and scientific validation framework. See the repository’s README.md for full technical details, methodological assumptions, and limitations."
 )
 
 st.header("Citing")

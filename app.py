@@ -29,7 +29,7 @@ LOGO_PATH = Path(__file__).resolve().parent / "logo_gaiav2.png"
 _logo_image = Image.open(LOGO_PATH) if LOGO_PATH.exists() else None
 
 st.set_page_config(
-    page_title="GAIA v2 - Geothermobarometry",
+    page_title="GAIA 2 - Geothermobarometry",
     page_icon=_logo_image if _logo_image is not None else "🌋",
     layout="wide",
 )
@@ -83,14 +83,14 @@ def _plot_histograms(results: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------
 col_title, col_logo = st.columns([3, 1])
 with col_title:
-    st.title("GAIA v2")
+    st.title("GAIA 2")
     st.subheader("Geo Artificial Intelligence thermobArometry")
     st.write(
         "PyTorch deep learning ensemble for Pressure (kbar) and Temperature (°C) "
         "estimates of volcano plumbing systems, based on clinopyroxene composition."
     )
     st.caption(
-        "Standalone version (GAIA_v2), based on the final PyTorch models. "
+        "Standalone version (GAIA 2), based on the final PyTorch models. "
         "See README.md for scientific details, limitations and attribution."
     )
 with col_logo:
