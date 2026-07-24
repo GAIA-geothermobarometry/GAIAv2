@@ -1,63 +1,62 @@
 # GAIA v2
 
-Applicazione standalone (PyTorch + Streamlit) per la stima di **Pressione (kbar)**
-e **Temperatura (°C)** dei sistemi di alimentazione vulcanica a partire dalla
-composizione chimica del clinopirosseno (geotermobarometria).
+Standalone application (PyTorch + Streamlit) for estimating **Pressure (kbar)**
+and **Temperature (°C)** of volcano plumbing systems from clinopyroxene
+chemical composition (geothermobarometry).
 
-Questa è una riscrittura self-contained della precedente app GAIA (vedi
-`GAIA_legacy/` nel workspace di sviluppo originale), con un nuovo layer di
-inferenza basato sui modelli PyTorch definitivi (luglio 2026), al posto dei
-vecchi modelli TensorFlow.
+This is a self-contained rewrite of the previous GAIA app (see `GAIA_legacy/`
+in the original development workspace), with a new inference layer based on
+the final PyTorch models (July 2026), replacing the old TensorFlow models.
 
-## Cosa fa
+## What it does
 
-1. L'utente carica un file (csv/xls/xlsx) con le analisi chimiche di
-   clinopirosseno (ossidi maggiori in wt%).
-2. L'app calcola le 11 componenti strutturali del clinopirosseno (stesso
-   procedimento chimico della app legacy).
-3. Un ensemble di reti neurali PyTorch (100 modelli per la pressione, 20 per
-   la temperatura) predice P e T per ciascun campione, riportando anche
-   l'incertezza (deviazione standard tra i modelli dell'ensemble).
-4. I risultati possono essere scaricati in formato Excel.
+1. The user uploads a file (csv/xls/xlsx) with clinopyroxene chemical
+   analyses (major oxides in wt%).
+2. The app computes the 11 structural components of the clinopyroxene (same
+   chemical procedure as the legacy app).
+3. An ensemble of PyTorch neural networks (100 models for pressure, 20 for
+   temperature) predicts P and T for each sample, also reporting the
+   uncertainty (standard deviation across the ensemble models).
+4. Results can be downloaded as an Excel file, and prediction histograms can
+   be plotted directly in the app.
 
-## Cromo misurato vs non misurato
+## Measured vs. non-measured Chromium
 
-Esistono **due famiglie di modelli**, addestrate separatamente:
+There are **two model families**, trained separately:
 
-- **`with_chromium`**: usata quando il Cr2O3 è stato analizzato. Le componenti
-  cromo-dipendenti (`CaCrTs`, `NaCrSi2O6`) vengono calcolate normalmente.
-- **`without_chromium`**: usata quando il Cromo NON è stato misurato. **I
-  modelli di questa famiglia sono stati addestrati impostando a zero le
-  componenti `CaCrTs` e `NaCrSi2O6`** (dopo il preprocessing chimico, prima
-  dell'addestramento/inferenza). Per essere coerenti con l'addestramento,
-  l'app applica esattamente la stessa procedura di azzeramento prima di
-  invocare questa famiglia di modelli.
+- **`with_chromium`**: used when Cr2O3 was analyzed. The chromium-dependent
+  components (`CaCrTs`, `NaCrSi2O6`) are computed normally.
+- **`without_chromium`**: used when Chromium was NOT measured. **The models
+  of this family were trained by zeroing the `CaCrTs` and `NaCrSi2O6`
+  components** (after chemical preprocessing, before training/inference). To
+  stay consistent with training, the app applies exactly the same zeroing
+  procedure before invoking this model family.
 
-Entrambi i flussi condividono la **stessa identica pipeline di preprocessing**
-chimico (`gaia/preprocessing.py`); l'unica differenza è l'azzeramento delle
-due componenti cromo-dipendenti e la scelta della famiglia di checkpoint.
+Both flows share the **exact same chemical preprocessing pipeline**
+(`gaia/preprocessing.py`); the only difference is the zeroing of the two
+chromium-dependent components and the choice of checkpoint family.
 
-La modalità va **sempre selezionata esplicitamente** dall'utente nell'interfaccia
-(non viene mai dedotta automaticamente dai dati).
+The mode must **always be explicitly selected** by the user in the interface
+(it is never automatically inferred from the data).
 
-## Formato di input richiesto
+## Required input format
 
-Colonne richieste, in quest'ordine:
+Required columns, in this order:
 
 ```
 Index, sample, notes, notes.1, SiO2, TiO2, Al2O3, Cr2O3, FeO tot, MnO, NiO, MgO, CaO, Na2O, K2O, tot
 ```
 
-- `Index`, `sample`, `notes`, `notes.1`: identificano il campione (testo libero).
-- Ossidi maggiori in wt%: se un ossido non è stato analizzato o è sotto il
-  limite di rilevabilità, inserire `0` o lasciare la cella vuota.
-- `tot`: totale analitico, colonna informativa (non usata nel calcolo).
+- `Index`, `sample`, `notes`, `notes.1`: identify the sample (free text).
+- Major oxides in wt%: if an oxide was not analyzed or is below the detection
+  limit, enter `0` or leave the cell blank.
+- `tot`: analytical total, informational column (not used in the computation).
 
-Un file di esempio è disponibile in `examples/input_example.xlsx` (derivato
-dal template della app legacy) e un template vuoto in
+An example file is available at `examples/input_example.xlsx` (derived from
+the legacy app template) and an empty template at
 `examples/input_template_empty.xlsx`.
 
-## Installazione
+## Installation
 
 ```powershell
 conda create -n GAIAv2_env python=3.9
@@ -65,118 +64,124 @@ conda activate GAIAv2_env
 pip install -r requirements.txt
 ```
 
-## Avvio locale
+## Local launch
 
 ```powershell
 cd GAIA_v2
 streamlit run app.py
 ```
 
-## Test
+The app is a Streamlit multipage app: the "Info" page (project background,
+citation, people) is automatically available in the sidebar
+(`pages/1_Info.py`).
+
+## Tests
 
 ```powershell
 cd GAIA_v2
 python -m pytest tests -v
 ```
 
-Tutti i test (23) sono eseguibili da dentro `GAIA_v2` senza alcuna dipendenza
-da file o import esterni alla cartella. Includono:
+All tests (23) can be run from inside `GAIA_v2` without any dependency on
+files or imports outside this folder. They include:
 
-- preprocessing chimico condiviso e deterministico;
-- corretto azzeramento delle sole componenti cromo-dipendenti;
-- validazione dell'input;
-- caricamento dei checkpoint e modalità `eval()`;
-- integrazione end-to-end per entrambi i flussi;
-- **equivalenza numerica**: l'output del modello di inferenza semplificato
-  (`gaia/models.py`, solo `net` + `regressor`) è confrontato contro una
-  ricostruzione indipendente dell'architettura originale completa
-  (con il ramo `discriminator`, mai usato in inferenza) caricata con gli
-  stessi pesi. Tolleranza usata: `rtol=1e-5, atol=1e-6` (i pesi e la parte
-  di rete rilevante sono identici bit per bit; la tolleranza copre solo
-  eventuale non-determinismo interno di BLAS/PyTorch).
+- shared, deterministic chemical preprocessing;
+- correct zeroing of only the chromium-dependent components;
+- input validation;
+- checkpoint loading and `eval()` mode;
+- end-to-end integration for both flows;
+- **numerical equivalence**: the output of the simplified inference model
+  (`gaia/models.py`, `net` + `regressor` only) is compared against an
+  independent reconstruction of the full original architecture (including
+  the `discriminator` branch, never used at inference time) loaded with the
+  same weights. Tolerance used: `rtol=1e-5, atol=1e-6` (the weights and the
+  relevant network part are bit-for-bit identical; the tolerance only covers
+  possible internal BLAS/PyTorch non-determinism).
 
-## Organizzazione dei modelli (artifacts/)
+## Model organization (artifacts/)
 
 ```
 artifacts/
 ├── with_chromium/
-│   ├── pressure/       # 100 checkpoint (mod_0_.pth ... mod_99_.pth)
-│   └── temperature/    # 20 checkpoint (mod_0_.pth ... mod_19_.pth)
+│   ├── pressure/       # 100 checkpoints (mod_0_.pth ... mod_99_.pth)
+│   └── temperature/    # 20 checkpoints (mod_0_.pth ... mod_19_.pth)
 └── without_chromium/
-    ├── pressure/       # 100 checkpoint
-    └── temperature/    # 20 checkpoint
+    ├── pressure/       # 100 checkpoints
+    └── temperature/    # 20 checkpoints
 ```
 
-Ogni file `.pth` è un `state_dict` PyTorch puro (nessun modello serializzato
-completo, nessuno scaler incorporato). Dimensione totale copiata:
-**~486.7 MB (240 file)**. Essendo superiore alla soglia consigliata per un
-repository Git "normale" (~100 MB), **si raccomanda l'uso di Git LFS** per
-tracciare la cartella `artifacts/` se questo progetto verrà versionato in un
-repository Git. Git LFS non è stato configurato automaticamente.
+Each `.pth` file is a plain PyTorch `state_dict` (no fully serialized model,
+no embedded scaler). Total copied size: **~486.7 MB (240 files)**. Since this
+exceeds the recommended threshold for a "normal" Git repository (~100 MB),
+**Git LFS is recommended** for tracking the `artifacts/` folder if this
+project is versioned in a Git repository. Git LFS has not been configured
+automatically.
 
-Non sono stati copiati: `global_history.pkl` (storico di training) e i file
-`seq_sorted_bootstrap*.pickle` (indici di bootstrap), non necessari per
-l'inferenza.
+Not copied: `global_history.pkl` (training history) and the
+`seq_sorted_bootstrap*.pickle` files (bootstrap indices), not needed for
+inference.
 
-## Architettura dei modelli
+## Model architecture
 
-Rete MLP con adattamento di dominio (solo il ramo `net` + `regressor` è usato
-in inferenza; il ramo `discriminator`, usato in training per l'adversarial
-domain adaptation, è ignorato):
+MLP with domain adaptation (only the `net` + `regressor` branch is used at
+inference time; the `discriminator` branch, used during training for
+adversarial domain adaptation, is ignored):
 
-- Pressione: `Linear(11→100) → ReLU → BatchNorm1d → Dropout(0.1) → Linear(100→100) → ReLU → Linear(100→100) → ReLU → Linear(100→1)`
-- Temperatura: stessa struttura con larghezza 1000 invece di 100.
+- Pressure: `Linear(11→100) → ReLU → BatchNorm1d → Dropout(0.1) → Linear(100→100) → ReLU → Linear(100→100) → ReLU → Linear(100→1)`
+- Temperature: same structure with width 1000 instead of 100.
 
-## Output e unità
+## Output and units
 
-- **Pressione**: kbar (media e deviazione standard dell'ensemble).
-- **Temperatura**: °C (media e deviazione standard dell'ensemble).
-- **`cpx_selection`**: flag booleano di qualità chimica (10 controlli:
-  bilancio Wo/En/Fs, somma dei componenti, sito T, sito M, bilancio di
-  carica, ecc. - stessa logica della app legacy). I campioni che non
-  superano il controllo hanno predizioni impostate a `NaN` invece di un
-  valore fittizio.
+- **Pressure**: kbar (ensemble mean and standard deviation).
+- **Temperature**: °C (ensemble mean and standard deviation).
+- **`cpx_selection`**: boolean chemical quality flag (10 checks: Wo/En/Fs
+  balance, sum of components, T site, M site, charge balance, etc. - same
+  logic as the legacy app). Samples that fail the check have predictions set
+  to `NaN` instead of a fabricated value.
 
-## Assunzioni scientifiche importanti
+## Important scientific assumptions
 
-- Nessuno scaler di input (StandardScaler/MinMax) è applicato: le 11
-  componenti derivano da un bilancio chimico che le vincola già in un range
-  comparabile. Questo riflette esattamente la pipeline di training originale.
-- La de-normalizzazione dell'output è una semplice moltiplicazione lineare
-  fissa (`×10` per la pressione, `×1400` per la temperatura), non uno scaler
-  fittato sui dati.
-- Le componenti cromo-dipendenti azzerate sono esattamente `CaCrTs` e
-  `NaCrSi2O6` (e nessun'altra), applicate dopo il preprocessing chimico e
-  prima dell'inferenza.
+- No input scaler (StandardScaler/MinMax) is applied: the 11 components come
+  from a chemical balance that already constrains them to a comparable range.
+  This exactly reflects the original training pipeline.
+- Output de-normalization is a simple fixed linear multiplication (`×10` for
+  pressure, `×1400` for temperature), not a scaler fitted on data.
+- The zeroed chromium-dependent components are exactly `CaCrTs` and
+  `NaCrSi2O6` (and no other), applied after chemical preprocessing and before
+  inference.
 
-## Limiti attuali
+## Current limitations
 
-- L'app non ricalcola/valida automaticamente se il file caricato è coerente
-  con la modalità Cromo scelta (es. tutte le colonne Cr2O3 a zero mentre è
-  stato selezionato "Cromo misurato"): la scelta resta responsabilità
-  dell'utente, per design (vedi requisiti).
-- Nessuna gestione di autenticazione, database o deployment multi-tenant:
-  l'app è pensata per un uso singolo-utente/locale o per deployment tramite
-  Streamlit Community Cloud / server interno.
-- I modelli sono stati validati sui dataset descritti nel workspace di
-  sviluppo originale (GAIA1/GAIA2/Wieser); l'accuratezza su composizioni
-  chimiche molto diverse da quelle di training non è garantita.
+- The app does not automatically check/validate whether the uploaded file is
+  consistent with the selected Chromium mode (e.g. all Cr2O3 columns at zero
+  while "Chromium measured" was selected): this choice remains the user's
+  responsibility, by design (see requirements).
+- No authentication, database, or multi-tenant deployment management: the
+  app is designed for single-user/local use or deployment via Streamlit
+  Community Cloud / an internal server.
+- The models were validated on the datasets described in the original
+  development workspace (GAIA1/GAIA2/Wieser); accuracy on chemical
+  compositions very different from the training data is not guaranteed.
 
-## Deployment su Streamlit Community Cloud
+## Deployment on Streamlit Community Cloud
 
-1. Versionare questa cartella (`GAIA_v2/`) in un repository Git dedicato
-   (eventualmente con Git LFS per `artifacts/`, vedi sopra).
-2. Su [share.streamlit.io](https://share.streamlit.io), collegare il
-   repository e impostare `app.py` come entry point.
-3. Assicurarsi che `requirements.txt` sia nella root del repository
-   (già presente qui).
+1. Version this folder (`GAIA_v2/`) in a dedicated Git repository
+   (optionally with Git LFS for `artifacts/`, see above).
+2. On [share.streamlit.io](https://share.streamlit.io), connect the
+   repository and set `app.py` as the entry point.
+3. Make sure `requirements.txt` is at the root of the repository (already
+   present here).
+4. If the deployment fails on dependency resolution (e.g. a `torch` build
+   incompatible with the platform's default Python version), pin the Python
+   version explicitly with a `.python-version` file at the repository root
+   (this project uses Python 3.11).
 
-## Licenza e attribuzione
+## License and attribution
 
-Basato sul progetto GAIA originale (Dipartimento di Fisica e Astronomia e
-Dipartimento di Scienze della Terra, Università di Firenze). Nessuna licenza
-esplicita era indicata nella app legacy (`GAIA_legacy/GAIA-main/README.md`
-riporta solo "[In publ.]" come riferimento alla pubblicazione scientifica).
-Si raccomanda di verificare/aggiungere una licenza esplicita prima di una
-distribuzione pubblica.
+Based on the original GAIA project (Department of Physics and Astronomy and
+Department of Earth Sciences, University of Florence). No explicit license
+was indicated in the legacy app (`GAIA_legacy/GAIA-main/README.md` only
+reports "[In publ.]" as a reference to the scientific publication). It is
+recommended to verify/add an explicit license before any public
+distribution.
 
