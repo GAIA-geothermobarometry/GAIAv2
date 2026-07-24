@@ -69,11 +69,15 @@ st.write("Paper [here](%s)" % url)
 
 st.header("People behind GAIA")
 st.markdown(
-    "- **Lorenzo Chicchi**, Università degli Studi di Firenze, Dipartimento di "
+    "- **Dr. Lorenzo Chicchi**, Università degli Studi di Firenze, Dipartimento di "
     "Fisica e Astronomia, INFN\n"
     "- **Prof. Luca Bindi**, Università degli Studi di Firenze, Dipartimento di "
     "Scienze della Terra\n"
     "- **Prof. Duccio Fanelli**, Università degli Studi di Firenze, Dipartimento "
+    "di Fisica e Astronomia, INFN\n"
+    "- ** Dr. Diego Febbe**, Università degli Studi di Firenze, Dipartimento "
+    "di Fisica e Astronomia, INFN\n"
+     "- ** Dr. Gianluca Peri**, Università degli Studi di Firenze, Dipartimento "
     "di Fisica e Astronomia, INFN\n"
     "- **Prof. Simone Tommasini**, Università degli Studi di Firenze, Dipartimento "
     "di Scienze della Terra"
