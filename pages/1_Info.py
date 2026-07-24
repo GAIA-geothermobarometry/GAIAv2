@@ -25,7 +25,7 @@ st.title("GAIA 2  - About the project")
 col_title, col_logo = st.columns([3, 1])
 with col_title:
     if _logo_image is not None:
-        st.image(_logo_image, width=500)
+        st.image(_logo_image, width=200)
 with col_logo:
     st.write(
         "The anatomy of the plumbing system of active volcanoes is fundamental to "
