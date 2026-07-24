@@ -70,14 +70,6 @@ artifacts/
     └── temperature/    # 20 checkpoints
 ```
 
-Each `.pth` file is a plain PyTorch `state_dict` (no fully serialized model,
-no embedded scaler). Total copied size: **~486.7 MB (240 files)**. Since this
-exceeds the recommended threshold for a "normal" Git repository (~100 MB),
-**Git LFS is recommended** for tracking the `artifacts/` folder if this
-project is versioned in a Git repository. Git LFS has not been configured
-automatically.
-
-
 ## Model architecture
 
 MLP with domain adaptation (only the `net` + `regressor` branch is used at
