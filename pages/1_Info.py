@@ -22,7 +22,7 @@ st.set_page_config(
 
 st.title("GAIA 2  - About the project")
 
-col_title, col_logo = st.columns([1, 3])
+col_title, col_logo = st.columns([3, 1])
 with col_title:
     st.write(
         "The anatomy of the plumbing system of active volcanoes is fundamental to "
