@@ -20,31 +20,31 @@ st.set_page_config(
     layout="wide",
 )
 
+st.title("GAIA 2  - About the project")
+
 col_title, col_logo = st.columns([3, 1])
 with col_title:
-    st.title("GAIA 2")
-with col_logo:
     if _logo_image is not None:
-        st.image(_logo_image, width=200)
-
-st.write(
-    "The anatomy of the plumbing system of active volcanoes is fundamental to "
-    "understanding how magma is stored and channeled to the surface. Reliable "
-    "geothermobarometric estimates are, therefore, critical to assess the depths "
-    "and temperatures of the complex system of magmatic reservoirs that form a "
-    "volcano apparatus. Here, we developed a novel Machine Learning approach based "
-    "upon Feedforward Neural Networks (GAIA) to estimate P-T conditions of magma "
-    "storage and migration within the crust. Our Feedforward Neural Network method "
-    "applied to clinopyroxene compositions yields better uncertainties "
-    "(Root-Mean-Square Error and R2 score) than previous Machine Learning methods "
-    "and sets the basis for a novel generation of reliable geothermobarometers, "
-    "which extends beyond the paradigm associated with crystal-liquid equilibrium. "
-    "Also, the bootstrap/ensemble procedure, inherent to the Feedforward Neural "
-    "Network architecture, permits a rigorous assessment of the P-T uncertainty "
-    "associated with each clinopyroxene composition, as opposed to the "
-    "Root-Mean-Square Error representing the P-T uncertainty of the whole set of "
-    "clinopyroxene compositions."
-)
+        st.image(_logo_image, width=500)
+with col_logo:
+    st.write(
+        "The anatomy of the plumbing system of active volcanoes is fundamental to "
+        "understanding how magma is stored and channeled to the surface. Reliable "
+        "geothermobarometric estimates are, therefore, critical to assess the depths "
+        "and temperatures of the complex system of magmatic reservoirs that form a "
+        "volcano apparatus. Here, we developed a novel Machine Learning approach based "
+        "upon Feedforward Neural Networks (GAIA) to estimate P-T conditions of magma "
+        "storage and migration within the crust. Our Feedforward Neural Network method "
+        "applied to clinopyroxene compositions yields better uncertainties "
+        "(Root-Mean-Square Error and R2 score) than previous Machine Learning methods "
+        "and sets the basis for a novel generation of reliable geothermobarometers, "
+        "which extends beyond the paradigm associated with crystal-liquid equilibrium. "
+        "Also, the bootstrap/ensemble procedure, inherent to the Feedforward Neural "
+        "Network architecture, permits a rigorous assessment of the P-T uncertainty "
+        "associated with each clinopyroxene composition, as opposed to the "
+        "Root-Mean-Square Error representing the P-T uncertainty of the whole set of "
+        "clinopyroxene compositions."
+    )
 
 st.header("About GAIA 2")
 st.write(
