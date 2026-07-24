@@ -94,7 +94,7 @@ with col_title:
     )
 with col_logo:
     if _logo_image is not None:
-        st.image(_logo_image, width=200)
+        st.image(_logo_image, width=500)
 
 with st.expander("Instructions and input file format", expanded=False):
     st.markdown(
