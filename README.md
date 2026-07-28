@@ -23,7 +23,7 @@ old TensorFlow models.
 
 ## Measured vs. non-measured Chromium
 
-There are **two model families**, trained separately:
+There are **three model families**, trained separately:
 
 - **`with_chromium`**: used when Cr2O3 was analyzed. The chromium-dependent
   components (`CaCrTs`, `NaCrSi2O6`) are computed normally.
@@ -32,10 +32,18 @@ There are **two model families**, trained separately:
   components** (after chemical preprocessing, before training/inference). To
   stay consistent with training, the app applies exactly the same zeroing
   procedure before invoking this model family.
+- **`mixed_chromium`** ("Chromium used when available"): used when some
+  samples in the uploaded file have chromium measured and others do not.
+  **This model family was trained on both measured chromium values and
+  missing-chromium samples with the `CaCrTs`/`NaCrSi2O6` components replaced
+  with zero** (`dan_003_Crnan_to_zero`). Measured Cr2O3 values are preserved
+  as-is; rows where Cr2O3 was not analyzed (blank cell) are treated as zero,
+  applied row-by-row, so a single file can freely mix both kinds of samples.
 
-Both flows share the **exact same chemical preprocessing pipeline**
-(`gaia/preprocessing.py`); the only difference is the zeroing of the two
-chromium-dependent components and the choice of checkpoint family.
+All three flows share the **exact same chemical preprocessing pipeline**
+(`gaia/preprocessing.py`); the only differences are (a) whether the two
+chromium-dependent components are forced to zero and (b) the choice of
+checkpoint family.
 
 The mode must **always be explicitly selected** by the user in the interface
 (it is never automatically inferred from the data).
@@ -65,7 +73,10 @@ artifacts/
 ├── with_chromium/
 │   ├── pressure/       # 100 checkpoints (mod_0_.pth ... mod_99_.pth)
 │   └── temperature/    # 20 checkpoints (mod_0_.pth ... mod_19_.pth)
-└── without_chromium/
+├── without_chromium/
+│   ├── pressure/       # 100 checkpoints
+│   └── temperature/    # 20 checkpoints
+└── mixed_chromium/
     ├── pressure/       # 100 checkpoints
     └── temperature/    # 20 checkpoints
 ```

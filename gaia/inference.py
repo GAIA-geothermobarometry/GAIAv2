@@ -26,8 +26,8 @@ def _get_ensemble(target: str, chromium_mode: str) -> EnsembleModel:
 
 
 def preload_models() -> None:
-    """Eagerly load every ensemble (both chromium modes, both targets)."""
-    for chromium_mode in ("with_chromium", "without_chromium"):
+    """Eagerly load every ensemble (all chromium modes, both targets)."""
+    for chromium_mode in ("with_chromium", "without_chromium", "mixed_chromium"):
         for target in TARGETS:
             _get_ensemble(target, chromium_mode)
 
@@ -41,10 +41,15 @@ def run_inference(dataframe: pd.DataFrame, chromium_mode: str) -> pd.DataFrame:
         Raw uploaded data containing the required metadata + oxide columns
         (see ``gaia.config.REQUIRED_INPUT_COLUMNS``).
     chromium_mode:
-        Either ``"with_chromium"`` (chromium was measured; the model family
-        trained with real chromium values is used) or ``"without_chromium"``
+        One of ``"with_chromium"`` (chromium was measured; the model family
+        trained with real chromium values is used), ``"without_chromium"``
         (chromium was not measured; the chromium-related components are
-        zeroed exactly as during training of the no-chromium model family).
+        zeroed exactly as during training of the no-chromium model family),
+        or ``"mixed_chromium"`` (chromium was measured for some samples and
+        not for others in the same file; measured values are preserved and
+        missing values are treated as zero, using the single model family
+        trained to handle both cases - see ``gaia.config`` /
+        ``gaia.preprocessing.apply_chromium_mode`` for details).
 
     Returns
     -------

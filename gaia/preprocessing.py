@@ -273,21 +273,37 @@ def _compute_checks(classif, major, sum_comp, site_T, site_M, charge_balanced, c
 def apply_chromium_mode(components: pd.DataFrame, chromium_mode: str) -> pd.DataFrame:
     """Apply the chromium mode to an already-computed component DataFrame.
 
-    Both flows share :func:`compute_components`. This function is the ONLY
-    place where chromium-related features are zeroed, and it must be called
-    AFTER chemical preprocessing and BEFORE model inference, exactly
-    reproducing the training-time procedure::
+    All three flows share :func:`compute_components`. This function is the
+    ONLY place where chromium-related features are (unconditionally) zeroed,
+    and it must be called AFTER chemical preprocessing and BEFORE model
+    inference, exactly reproducing the training-time procedure::
 
         if not Use_chrome:
             df['CaCrTs'] = 0
             df['NaCrSi2O6'] = 0
+
+    ``CHROMIUM_MODE_MIXED`` ("mixed_chromium", the model family trained on
+    both measured chromium and NaN-chromium-replaced-with-zero, see
+    ``dan_003_Crnan_to_zero`` in the original training workspace) requires
+    NO additional zeroing here: measured chromium must be preserved as-is,
+    and missing chromium is already mapped to 0 upstream, in
+    ``gaia.validation.validate_dataframe`` (blank/NaN oxide cells -> 0.0,
+    the same general convention used for every oxide column). Feeding
+    Cr2O3 = 0 into :func:`compute_components` yields CaCrTs = NaCrSi2O6 = 0
+    exactly, numerically identical to the training-time
+    ``fillna(0)`` applied to the derived component columns. Therefore
+    ``CHROMIUM_MODE_MIXED`` behaves exactly like ``CHROMIUM_MODE_WITH`` at
+    this stage: the two flows differ only in which trained ensemble
+    (checkpoint set) is used for inference (see ``gaia.config.CHROMIUM_MODES``
+    / ``gaia.models.EnsembleModel``).
 
     Parameters
     ----------
     components:
         DataFrame containing at least the ``FEATURE_COLUMNS``.
     chromium_mode:
-        One of ``config.CHROMIUM_MODE_WITH`` / ``config.CHROMIUM_MODE_WITHOUT``.
+        One of ``config.CHROMIUM_MODE_WITH`` / ``config.CHROMIUM_MODE_WITHOUT``
+        / ``config.CHROMIUM_MODE_MIXED``.
     """
     out = components.copy()
     if chromium_mode == CHROMIUM_MODE_WITHOUT:
