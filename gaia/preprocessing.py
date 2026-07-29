@@ -256,9 +256,9 @@ def _compute_checks(classif, major, sum_comp, site_T, site_M, charge_balanced, c
     analysis and its predictions should be flagged as not computable.
     """
     ck = pd.DataFrame(index=classif.index)
-    ck["Wo"] = (classif["Wo"] > 20) & (classif["Wo"] < 55)
+    ck["Wo"] = (classif["Wo"] > 20) & (classif["Wo"] < 56)
     ck["J"] = classif["J"] < 1
-    ck["Fs"] = (classif["Fs"] > 5) & (classif["Fs"] < 50)
+    ck["Fs"] = (classif["Fs"] > 3) & (classif["Fs"] < 60)
     ck["Wt%"] = (major["tot"] > 97.5) & (major["tot"] < 102.5)
     ck["components"] = (sum_comp > 0.95) & (sum_comp < 1.05)
     ck["Si apfu"] = site_T["Si"] <= 2
