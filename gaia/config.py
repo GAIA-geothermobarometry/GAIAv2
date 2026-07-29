@@ -68,43 +68,14 @@ CHROMIUM_FEATURE_COLUMNS = ["CaCrTs", "NaCrSi2O6"]
 
 # ---------------------------------------------------------------------------
 # Chromium modes (explicit, user-selected - never inferred automatically).
-#
-# CHROMIUM_MODE_MIXED ("mixed_chromium") corresponds to the third model
-# family trained in definitive_train_July26.py (experiments == 2:
-# Use_chrome=True, set_nan_Cr_to_zero=True; checkpoints copied from
-# results_july26/Three_models_run/dan_003_Crnan_to_zero). During training,
-# the chromium-dependent component columns ('CaCrTs', 'NaCrSi2O6') were
-# NaN for samples where chromium had not been measured (in the
-# already-preprocessed training/test datasets, only those two columns were
-# NaN, all other components were valid) and were replaced with 0 via
-# ``df['CaCrTs'] = df['CaCrTs'].fillna(0)`` (and likewise for
-# 'NaCrSi2O6'), while samples with measured chromium kept their real
-# (possibly genuinely zero) values untouched.
-#
-# GAIA_v2 starts from raw oxide wt% (not from precomputed components).
-# ``gaia.validation.validate_dataframe`` already fills missing/blank oxide
-# cells (including Cr2O3) with 0.0 before chemical preprocessing runs (this
-# is the existing, general "blank = not analysed" convention, applied
-# identically for all three chromium modes). Feeding Cr2O3 = 0 into
-# ``compute_components`` yields CaCrTs = NaCrSi2O6 = 0 exactly (both
-# formulas reduce to ``min(..., cation_Cr)`` with cation_Cr = 0), which is
-# numerically IDENTICAL to the training-time ``fillna(0)`` applied to the
-# derived component columns. Consequently, no extra zeroing step is
-# required for CHROMIUM_MODE_MIXED in ``apply_chromium_mode``: measured
-# chromium is preserved (real, non-zero cation), missing chromium already
-# becomes 0 through the same general validation step used for every other
-# oxide. This reproduces the training procedure exactly without
-# duplicating preprocessing logic.
 # ---------------------------------------------------------------------------
 CHROMIUM_MODE_WITH = "with_chromium"
 CHROMIUM_MODE_WITHOUT = "without_chromium"
-CHROMIUM_MODE_MIXED = "mixed_chromium"
-CHROMIUM_MODES = (CHROMIUM_MODE_WITH, CHROMIUM_MODE_WITHOUT, CHROMIUM_MODE_MIXED)
+CHROMIUM_MODES = (CHROMIUM_MODE_WITH, CHROMIUM_MODE_WITHOUT)
 
 _ARTIFACT_SUBDIR = {
     CHROMIUM_MODE_WITH: "with_chromium",
     CHROMIUM_MODE_WITHOUT: "without_chromium",
-    CHROMIUM_MODE_MIXED: "mixed_chromium",
 }
 
 # ---------------------------------------------------------------------------

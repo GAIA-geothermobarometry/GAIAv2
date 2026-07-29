@@ -15,7 +15,6 @@ import streamlit as st
 from PIL import Image
 
 from gaia.config import (
-    CHROMIUM_MODE_MIXED,
     CHROMIUM_MODE_WITH,
     CHROMIUM_MODE_WITHOUT,
     EXAMPLES_DIR,
@@ -125,32 +124,15 @@ with st.expander("Instructions and input file format", expanded=False):
 st.header("1. Chromium mode")
 chromium_choice = st.radio(
     "Was Chromium (Cr2O3) measured in the uploaded analyses?",
-    options=[
-        "Chromium measured",
-        "Chromium not measured",
-        "Chromium used when available",
-    ],
+    options=["Yes, Chromium was measured", "No, Chromium was not measured"],
     index=0,
 )
-_CHROMIUM_CHOICE_TO_MODE = {
-    "Chromium measured": CHROMIUM_MODE_WITH,
-    "Chromium not measured": CHROMIUM_MODE_WITHOUT,
-    "Chromium used when available": CHROMIUM_MODE_MIXED,
-}
-chromium_mode = _CHROMIUM_CHOICE_TO_MODE[chromium_choice]
+chromium_mode = CHROMIUM_MODE_WITH if chromium_choice.startswith("Yes") else CHROMIUM_MODE_WITHOUT
 
 if chromium_mode == CHROMIUM_MODE_WITHOUT:
     st.info(
         "The model family trained by zeroing the chromium-dependent components "
         "(CaCrTs, NaCrSi2O6) will be used, exactly as during training."
-    )
-elif chromium_mode == CHROMIUM_MODE_MIXED:
-    st.info(
-        "The model family trained to handle a mix of measured and missing "
-        "chromium will be used. Measured Cr2O3 values are preserved; rows "
-        "where Cr2O3 was not analysed (blank cell) are treated as zero, "
-        "exactly as during training. Use this option if some samples in "
-        "your file have chromium measured and others do not."
     )
 
 # ---------------------------------------------------------------------------

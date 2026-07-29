@@ -32,7 +32,6 @@ import torch.nn as nn
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from gaia.config import (
-    CHROMIUM_MODE_MIXED,
     CHROMIUM_MODE_WITH,
     CHROMIUM_MODE_WITHOUT,
     ENSEMBLE_SIZE,
@@ -92,7 +91,7 @@ def test_numerical_equivalence_with_reference_architecture():
     torch.manual_seed(0)
     x = torch.rand((5, INPUT_DIM), dtype=torch.float32)
 
-    for chromium_mode in (CHROMIUM_MODE_WITH, CHROMIUM_MODE_WITHOUT, CHROMIUM_MODE_MIXED):
+    for chromium_mode in (CHROMIUM_MODE_WITH, CHROMIUM_MODE_WITHOUT):
         for target in ("pressure", "temperature"):
             width = HIDDEN_WIDTH[target]
             paths = checkpoint_paths(chromium_mode, target)[:3]  # sample a few members, keep test fast
@@ -149,68 +148,4 @@ def test_chromium_mode_changes_predictions():
     # Different model family + zeroed chromium components -> predictions
     # should generally differ (not required to be exactly equal).
     assert not out_with["predicted_pressure"].equals(out_without["predicted_pressure"])
-
-
-# ---------------------------------------------------------------------------
-# mixed_chromium: dedicated integration tests (measured Cr, missing Cr, and
-# a mix of both in the same file).
-# ---------------------------------------------------------------------------
-
-def _mixed_sample_raw_df() -> pd.DataFrame:
-    df = _sample_raw_df()
-    df.loc[1, "Cr2O3"] = None  # sample "a2" has chromium not analysed
-    return df
-
-
-def test_mixed_chromium_checkpoints_load_correctly():
-    for target in ("pressure", "temperature"):
-        ensemble = EnsembleModel(target=target, chromium_mode=CHROMIUM_MODE_MIXED)
-        assert len(ensemble) == ENSEMBLE_SIZE[target]
-        for m in ensemble.models:
-            assert not m.training  # model.eval() was called
-
-
-def test_run_inference_mixed_chromium_flow_produces_both_targets():
-    df = _mixed_sample_raw_df()
-    out = run_inference(df, chromium_mode=CHROMIUM_MODE_MIXED)
-    assert "predicted_pressure" in out.columns
-    assert "predicted_temperature" in out.columns
-    assert len(out) == len(df)
-    assert out["predicted_pressure_unit"].eq("kbar").all()
-    assert out["predicted_temperature_unit"].eq("°C").all()
-
-
-def test_run_inference_mixed_chromium_all_measured():
-    df = _sample_raw_df()  # all rows have measured, non-zero Cr2O3
-    out = run_inference(df, chromium_mode=CHROMIUM_MODE_MIXED)
-    assert len(out) == len(df)
-    # samples passing the chemical quality checks must get a numeric prediction
-    assert out.loc[out["cpx_selection"], "predicted_pressure"].notna().all()
-
-
-def test_run_inference_mixed_chromium_all_missing():
-    df = _sample_raw_df()
-    df["Cr2O3"] = None
-    out = run_inference(df, chromium_mode=CHROMIUM_MODE_MIXED)
-    assert len(out) == len(df)
-    assert out.loc[out["cpx_selection"], "predicted_pressure"].notna().all()
-
-
-def test_run_inference_mixed_chromium_preserves_row_order():
-    df = _mixed_sample_raw_df()
-    out = run_inference(df, chromium_mode=CHROMIUM_MODE_MIXED)
-    assert list(out["sample"]) == list(df["sample"])
-
-
-def test_mixed_chromium_uses_dedicated_model_family_distinct_predictions():
-    """mixed_chromium must use its own ensemble (not silently fall back to
-    with/without_chromium): predictions should generally differ from both
-    other flows for the same input."""
-    df = _sample_raw_df()
-    out_with = run_inference(df, chromium_mode=CHROMIUM_MODE_WITH)
-    out_without = run_inference(df, chromium_mode=CHROMIUM_MODE_WITHOUT)
-    out_mixed = run_inference(df, chromium_mode=CHROMIUM_MODE_MIXED)
-    assert not out_mixed["predicted_pressure"].equals(out_with["predicted_pressure"])
-    assert not out_mixed["predicted_pressure"].equals(out_without["predicted_pressure"])
-
 

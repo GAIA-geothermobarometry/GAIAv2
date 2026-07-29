@@ -9,7 +9,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from gaia.config import CHROMIUM_MODE_MIXED, REQUIRED_INPUT_COLUMNS
+from gaia.config import REQUIRED_INPUT_COLUMNS
 from gaia.validation import ValidationError, validate_chromium_mode, validate_dataframe
 
 
@@ -76,19 +76,4 @@ def test_blank_oxide_filled_with_zero_not_error():
 def test_invalid_chromium_mode_raises():
     with pytest.raises(ValidationError):
         validate_chromium_mode("maybe_chromium")
-
-
-def test_mixed_chromium_mode_is_valid():
-    validate_chromium_mode(CHROMIUM_MODE_MIXED)  # must not raise
-
-
-def test_missing_chromium_column_filled_with_zero_for_mixed_mode():
-    """Blank Cr2O3 cell -> 0.0 (upstream general convention), while a
-    genuinely measured Cr2O3 value in another row is left untouched."""
-    df = pd.concat([_valid_df(), _valid_df()], ignore_index=True)
-    df.loc[1, "Cr2O3"] = None
-    out = validate_dataframe(df)
-    assert out.loc[0, "Cr2O3"] == 0.1  # measured value preserved
-    assert out.loc[1, "Cr2O3"] == 0.0  # missing -> zero
-
 
